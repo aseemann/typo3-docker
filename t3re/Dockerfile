@@ -6,10 +6,6 @@ ENV BUILD_DEPS="$PHPIZE_DEPS zlib-dev freetype-dev libjpeg-turbo-dev libmcrypt-d
 
 RUN apk --no-cache add ${BUILD_DEPS}
 
-#FROM buildbox as build-iconv
-#
-#RUN docker-php-ext-install -j$(nproc) iconv
-
 FROM buildbox as build-gdlib
 
 RUN apk add --no-cache libwebp-dev && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
@@ -147,5 +143,11 @@ RUN set -ex \
 
 RUN runDeps="$(scanelf --needed --nobanner --format '%n#p' --recursive /usr/sbin/nginx /usr/lib/nginx/modules/*.so /usr/local /usr/lib/*.so.*  | tr ',' '\n' | sort -u | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }')" && \
     apk add -v --no-cache ${runDeps} so:libintl.so.8 && apk add --no-cache curl bash graphicsmagick ghostscript
+
+WORKDIR /var/www
+
+RUN chown www-data:www-data /var/www
+
+VOLUME [ "/var/www" ]
 
 COPY rootfs/ /
